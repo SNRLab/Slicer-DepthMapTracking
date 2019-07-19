@@ -184,7 +184,7 @@ class DepthNetworkTrackingWidget:
       inputsLayout.addRow("Landmarks: ", self.landmarksSpinBox)
 
       self.booleanCheckBox = qt.QCheckBox()
-      self.booleanCheckBox.setChecked(True)
+      self.booleanCheckBox.setChecked(False)
       inputsLayout.addRow("Use boolean: ", self.booleanCheckBox)
 
 
@@ -193,7 +193,7 @@ class DepthNetworkTrackingWidget:
       self.layout.addWidget(self.registerButton)      
 
       spacer = qt.QSpacerItem(1, 14, qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding)
-      self.layout.addItem(spacer)      
+      #self.layout.addItem(spacer)      
 
     def Initialize(self):
       self.RGB_Paths = []
@@ -216,6 +216,7 @@ class DepthNetworkTrackingWidget:
     def Forwards(self):
       self.counter = self.counter+1
       self.UpdateImages()
+      self.OnRegister()
 
     def OnConvertToPointCloud(self):
       pointCloudNode = self.DepthMapToPointCloud(self.Depth_Paths[self.counter], self.RGB_Paths[self.counter])
@@ -235,23 +236,27 @@ class DepthNetworkTrackingWidget:
       self.OnConvertToPointCloud()
       if self.booleanCheckBox.isChecked():
         self.IntersectBaseModel()
-      #self.RegisterToBaseModel()
+      self.RegisterToBaseModel()
 
     def IntersectBaseModel(self):
       transform = vtk.vtkTransform()
       matrix = vtk.vtkMatrix4x4()
       self.transformSelector.currentNode().GetMatrixTransformToParent(matrix)
       transform.SetMatrix(matrix)
-      transform.RotateX(-90.0)
+      #transform.RotateX(-90.0)
 
-      cylinder = vtk.vtkCylinderSource()
-      cylinder.SetCenter(np.array([0.0, 0.0, 0.0]))
-      cylinder.SetRadius(30)
-      cylinder.SetHeight(110)
-      cylinder.SetResolution(100)
-      cylinder.Update()
+      # cylinder = vtk.vtkCylinderSource()
+      # cylinder.SetCenter(np.array([0.0, 0.0, 0.0]))
+      # cylinder.SetRadius(25)
+      # cylinder.SetHeight(60)
+      # cylinder.SetResolution(100)
+      # cylinder.Update()
+
+      originalCylinder_path = os.path.dirname(os.path.realpath(__file__)) + "\\Models\\OriginalCylinder.stl"
+      originalCylinderModelNode = slicer.util.loadModel(originalCylinder_path)        
+
       transformFilter = vtk.vtkTransformPolyDataFilter()
-      transformFilter.SetInputConnection(cylinder.GetOutputPort())
+      transformFilter.SetInputData(originalCylinderModelNode.GetPolyData())
       transformFilter.SetTransform(transform)
       transformFilter.ReleaseDataFlagOn()
       transformFilter.Update()
@@ -277,7 +282,10 @@ class DepthNetworkTrackingWidget:
       modelDisplayNode2.SetOpacity(1.0)
       modelDisplayNode2.SetColor(0,1,0)      
 
-      slicer.util.saveNode(modelNode, "D:/w/s/DepthNetworkTracking/Blender/cylinder.stl")
+      cylinder_path = os.path.dirname(os.path.realpath(__file__)) + "\\Models\\cylinder.stl"
+      slicer.util.saveNode(modelNode, cylinder_path)
+
+      slicer.mrmlScene.RemoveNode(originalCylinderModelNode)     
       
       self.blenderBoolean()
 
@@ -294,8 +302,8 @@ class DepthNetworkTrackingWidget:
         for id_data in bpy_data_iter:
             bpy_data_iter.remove(id_data)
       
-      dir_path = os.path.dirname(os.path.realpath(__file__)) + "\\Blender\\"
-      #dir_path = "D:\\w\\s\\DepthNetworkTracking\\Blender\\"
+      dir_path = os.path.dirname(os.path.realpath(__file__)) + "\\Models\\"
+      #dir_path = "D:\\w\\s\\DepthNetworkTracking\\Model\\"
       airwayPath = dir_path + "airwayNoWall.stl"
       cylinderPath = dir_path + "cylinder.stl"
       
@@ -330,11 +338,11 @@ class DepthNetworkTrackingWidget:
         modelDisplayNode2.SetScene(slicer.mrmlScene)
         slicer.mrmlScene.AddNode(modelDisplayNode2)
         modelNode2.SetAndObserveDisplayNodeID(modelDisplayNode2.GetID())
-      modelDisplayNode2.SetOpacity(1.0)
+      modelDisplayNode2.SetOpacity(0.7)
       modelDisplayNode2.SetColor(0,1,0)
 
       modelNode2.SetAndObservePolyData(outputModelNode.GetPolyData())
-      slicer.mrmlScene.RemoveNode(outputModelNode)      
+      slicer.mrmlScene.RemoveNode(outputModelNode)
       
       
     def RegisterToBaseModel(self):
@@ -346,7 +354,7 @@ class DepthNetworkTrackingWidget:
       
       self.surfaceRegistration.inputMovingModelSelector.currentNodeID = self.pointCloudSelector.currentNodeID
       self.surfaceRegistration.outputTransformSelector.currentNodeID = self.transientTransformSelector.currentNodeID
-      self.surfaceRegistration.landmarkTransformTypeButtonsSimilarity.checked = True
+      #self.surfaceRegistration.landmarkTransformTypeButtonsSimilarity.checked = True
       self.surfaceRegistration.numberOfIterations.setValue(self.iterationsSpinBox.value)
       self.surfaceRegistration.numberOfLandmarks.setValue(self.landmarksSpinBox.value)
       self.surfaceRegistration.onComputeButton()
@@ -357,7 +365,7 @@ class DepthNetworkTrackingWidget:
       resultMatrix = vtk.vtkMatrix4x4()
       self.transformSelector.currentNode().GetMatrixTransformToParent(matrix)
       self.transientTransformSelector.currentNode().GetMatrixTransformToParent(transientMatrix)
-      vtk.vtkMatrix4x4.Multiply4x4(matrix, transientMatrix, resultMatrix)
+      vtk.vtkMatrix4x4.Multiply4x4(transientMatrix, matrix, resultMatrix)
       self.transformSelector.currentNode().SetMatrixTransformToParent(resultMatrix)
 
     def DepthMapToPointCloud(self, depthmapFilename, rgbFilename):
@@ -383,7 +391,7 @@ class DepthNetworkTrackingWidget:
           z = depthImage[u][vflipped]
           z = z[0] / self.depthDividerBox.value
 
-          if z < 40:
+          if z < 60:
           #if True:
             points.InsertNextPoint(np.array([z * (u - (height/2)) / fx_d, z * (v - (width/2)) / fy_d, z]))
 
@@ -408,7 +416,7 @@ class DepthNetworkTrackingWidget:
         slicer.mrmlScene.AddNode(modelDisplayNode)
         modelNode.SetAndObserveDisplayNodeID(modelDisplayNode.GetID())
       modelDisplayNode.SetRepresentation(modelDisplayNode.PointsRepresentation)
-      modelDisplayNode.SetPointSize(7)
+      modelDisplayNode.SetPointSize(4)
       modelDisplayNode.SetOpacity(0.2)
       modelDisplayNode.SetColor(1,0,0)
 
