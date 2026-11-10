@@ -1,0 +1,40 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using the metadata below, and cite the related paper listed under preferred-citation."
+type: software
+title: "Slicer-DepthMapTracking"
+abstract: >-
+  A 3D Slicer module for vision-based bronchoscope tracking that registers
+  depth maps estimated from bronchoscopic images to airway models.
+authors:
+  - given-names: Franklin
+    family-names: King
+    orcid: "https://orcid.org/0000-0003-4381-4242"
+    affiliation: "Brigham and Women's Hospital"
+repository-code: "https://github.com/SNRLab/Slicer-DepthMapTracking"
+license-url: "https://github.com/SNRLab/Slicer-DepthMapTracking/blob/master/License.txt"
+keywords:
+  - 3D Slicer
+  - bronchoscopy
+  - depth estimation
+  - surgical navigation
+preferred-citation:
+  type: article
+  title: "Visually navigated bronchoscopy using three cycle-consistent generative adversarial network for depth estimation"
+  authors:
+    - given-names: Artur
+      family-names: Banach
+      orcid: "https://orcid.org/0000-0003-2622-3301"
+    - given-names: Franklin
+      family-names: King
+      orcid: "https://orcid.org/0000-0003-4381-4242"
+    - given-names: Fumitaro
+      family-names: Masaki
+    - given-names: Hisashi
+      family-names: Tsukada
+    - given-names: Nobuhiko
+      family-names: Hata
+  journal: "Medical Image Analysis"
+  volume: 73
+  start: 102164
+  year: 2021
+  doi: "10.1016/j.media.2021.102164"
